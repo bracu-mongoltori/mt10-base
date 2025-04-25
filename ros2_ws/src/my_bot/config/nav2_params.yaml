@@ -1,0 +1,10 @@
+amcl:
+  ros__parameters:
+    use_map_topic: true
+    first_map_only: true
+    update_min_d: 0.2
+    update_min_a: 0.2
+    odom_frame_id: odom
+    map_frame: map
+    base_frame_id: base_footprint
+    scan_topic: /scan

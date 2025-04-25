@@ -1,0 +1,100 @@
+/**:
+  ros__parameters:
+    aidingAssignment:
+      gnss1ModulePortAssignment: 5
+      gnss1ModuleSyncAssignment: 5
+      odometerPinAssignment: 0
+      rtcmPortAssignment: 2
+    confWithRos: true
+    driver:
+      frequency: 400
+    gnss:
+      gnss_model_id: 107
+      hdtRejectMode: 1
+      posRejectMode: 1
+      primaryLeverArmX: 0.0
+      primaryLeverArmY: 0.0
+      primaryLeverArmZ: 0.0
+      primaryLeverPrecise: true
+      secondaryLeverArmX: 0.0
+      secondaryLeverArmY: 0.0
+      secondaryLeverArmZ: 0.0
+      secondaryLeverMode: 3
+      velRejectMode: 1
+    imuAlignementLeverArm:
+      axisDirectionX: 0
+      axisDirectionY: 3
+      leverArmX: 0.0
+      leverArmY: 0.0
+      leverArmZ: 0.0
+      misPitch: 0.0
+      misRoll: 0.0
+      misYaw: 0.0
+    magnetometer:
+      calibration:
+        bandwidth: 2
+        mode: 1
+      magnetometerModel: 202
+      magnetometerRejectMode: 1
+    nmea:
+      namespace: ntrip_client
+      publish: false
+      topic_name: nmea
+    odom:
+      direction: false
+      gain: 4800.0
+      gain_error: 0
+      leverArmX: 0.0
+      leverArmY: 0.0
+      leverArmZ: 0.0
+      rejectMode: 1
+    odometry:
+      baseFrameId: base_link
+      enable: false
+      initFrameId: map
+      odomFrameId: odom
+      publishTf: true
+    output:
+      frame_id: imu_link_ned
+      log_air_data: 0
+      log_ekf_euler: 8
+      log_ekf_nav: 8
+      log_ekf_quat: 8
+      log_ekf_rot_accel_body: 0
+      log_ekf_rot_accel_ned: 0
+      log_ekf_vel_body: 0
+      log_event_a: 0
+      log_event_b: 0
+      log_event_c: 0
+      log_event_d: 0
+      log_gps1_hdt: 10001
+      log_gps1_pos: 10001
+      log_gps1_raw: 10001
+      log_gps1_vel: 10001
+      log_imu_data: 8
+      log_imu_short: 8
+      log_mag: 0
+      log_mag_calib: 0
+      log_odo_vel: 0
+      log_ship_motion: 0
+      log_status: 200
+      log_utc_time: 200
+      ros_standard: false
+      time_reference: ros
+      use_enu: false
+    rtcm:
+      namespace: ntrip_client
+      subscribe: true
+      topic_name: rtcm
+    sensorParameters:
+      day: 23
+      initAlt: 100.0
+      initLat: 48.419727
+      initLong: -4.472119
+      month: 2
+      motionProfile: 1
+      year: 2025
+    uartConf:
+      baudRate: 115200
+      portID: 0
+      portName: /dev/ttyUSB1

@@ -1,0 +1,4 @@
+ATTRS{product}=="USB-RS232 Cable", ATTRS{manufacturer}=="FTDI", ATTRS{serial}=="AU04YIPF", SYMLINK+="sbg"
+SUBSYSTEM=="video4linux", ATTR{index}=="0", ATTR{name}=="C922 Pro Stream Webcam", SYMLINK+="logi"
+SUBSYSTEMS=="usb-serial", DRIVERS=="ch341-uart", SYMLINK+="witmotion"
+SUBSYSTEMS=="usb", DRIVERS=="ftdi_sio", ATTRS{interface}=="FT231X USB UART", SYMLINK+="telemetry"

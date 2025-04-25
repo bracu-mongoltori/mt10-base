@@ -1,0 +1,316 @@
+<?xml version="1.0"?>
+<!--
+  curio.urdf.xacro
+  Revised URDF description for the Curio rover for ROS2.
+  All Gazebo and simulation-specific tags have been removed.
+  License: BSD-3-Clause (see original header)
+-->
+<robot name="curio" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- Include additional xacro files for materials, inertials, and laser -->
+  <xacro:include filename="curio_materials.xacro"/>
+  <xacro:include filename="curio_inertials.xacro"/>
+
+  <!-- Chassis properties -->
+  <xacro:property name="makerbeam_width" value="0.015" />
+  <xacro:property name="makerbeam_depth" value="0.015" />
+  <xacro:property name="makerbeam_density" value="0.100" />
+
+  <xacro:property name="body_box_length" value="0.425" />
+  <xacro:property name="body_box_width" value="0.285" />
+  <xacro:property name="body_box_depth" value="0.093" />
+  <xacro:property name="body_box_mass" value="1.0" />
+
+  <xacro:property name="front_rocker_arm_length" value="0.182" />
+  <xacro:property name="back_rocker_arm_length" value="0.161" />
+  <xacro:property name="front_rocker_arm_angle" value="0.3490658503988659" />
+  <xacro:property name="back_rocker_arm_angle" value="-0.3141592653589793" />
+
+  <xacro:property name="front_bogie_arm_length" value="0.122" />
+  <xacro:property name="back_bogie_arm_length" value="0.117" />
+  <xacro:property name="front_bogie_arm_angle" value="0.5201081170943103" />
+  <xacro:property name="back_bogie_arm_angle" value="0.25656340004316625" />
+
+  <xacro:property name="wheel_width" value="0.100" />
+  <xacro:property name="wheel_radius" value="0.060" />
+
+  <!-- Base Link (minimal base) -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <!-- A small box for visual validity -->
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+    <xacro:solid_cuboid_inertial rpy="0 0 0" xyz="0 0 0"
+      mass="0.01" x="0.01" y="0.01" z="0.01"/>
+  </link>
+
+  <!-- Chassis (Body Box) -->
+  <link name="body_box_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${body_box_length} ${body_box_width} ${body_box_depth}"/>
+      </geometry>
+      <material name="dark_gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${body_box_length} ${body_box_width} ${body_box_depth}"/>
+      </geometry>
+    </collision>
+    <xacro:solid_cuboid_inertial rpy="0 0 0" xyz="0 0 0"
+      mass="${body_box_mass}" x="${body_box_length}" y="${body_box_width}" z="${body_box_depth}"/>
+  </link>
+
+  <joint name="body_box_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="body_box_link"/>
+  </joint>
+
+  <!-- Differential Brace -->
+  <link name="diff_brace_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 1.5708"/>
+      <geometry>
+        <box size="0.200 0.015 0.015"/>
+      </geometry>
+      <material name="dark_gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 1.5708"/>
+      <geometry>
+        <box size="0.200 0.015 0.015"/>
+      </geometry>
+    </collision>
+    <xacro:solid_cuboid_inertial rpy="0 0 1.5708" xyz="0 0 0"
+      mass="0.1" x="0.2" y="0.015" z="0.015"/>
+  </link>
+
+  <joint name="diff_brace_joint" type="revolute">
+    <origin xyz="0 0 0.0681" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.7854" upper="0.7854" effort="100.0" velocity="100.0"/>
+    <parent link="base_link"/>
+    <child link="diff_brace_link"/>
+  </joint>
+
+  <!-- In the turnbuckle_assembly macro -->
+	<xacro:macro name="turnbuckle_assembly" params="lat_label reflect">
+	  <link name="${lat_label}_turnbuckle_link">
+	    <visual>
+	      <origin xyz="0 0 0" rpy="0 0 0"/>
+	      <geometry>
+		<cylinder length="0.07" radius="0.0025"/>
+	      </geometry>
+	      <!-- Added name attribute to material -->
+	      <material name="blue">
+		<color rgba="0 0 1 1"/>
+	      </material>
+	    </visual>
+	    <!-- ... other elements ... -->
+	  </link>
+	  <!-- Changed joint type from 'ball' to 'fixed' -->
+	  <joint name="back_${lat_label}_turnbuckle_joint" type="fixed">
+	    <origin xyz="-0.035 0 0" rpy="0 0 0"/>
+	    <parent link="diff_brace_link"/>
+	    <child link="${lat_label}_turnbuckle_link"/>
+	  </joint>
+	  <joint name="front_${lat_label}_turnbuckle_joint" type="fixed">
+	    <origin xyz="0.035 0 0" rpy="0 0 0"/>
+	    <parent link="${lat_label}_rocker_link"/>
+	    <child link="${lat_label}_turnbuckle_link"/>
+	  </joint>
+	</xacro:macro>
+  <xacro:turnbuckle_assembly lat_label="left" reflect="1"/>
+  <xacro:turnbuckle_assembly lat_label="right" reflect="-1"/>
+
+  <!-- Rocker Links and Joints -->
+  <xacro:macro name="rocker_link" params="lat_label">
+    <link name="${lat_label}_rocker_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.015 0.015"/>
+        </geometry>
+        <material name="dark_gray"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.015 0.015"/>
+        </geometry>
+      </collision>
+      <xacro:solid_cuboid_inertial rpy="0 0 0" xyz="0 0 0"
+        mass="0.25" x="0.1" y="0.015" z="0.015"/>
+    </link>
+  </xacro:macro>
+  <xacro:rocker_link lat_label="left"/>
+  <xacro:rocker_link lat_label="right"/>
+
+  <xacro:macro name="rocker_joint" params="lat_label reflect">
+    <joint name="${lat_label}_rocker_joint" type="continuous">
+      <origin xyz="0.071 ${reflect * 0.155} 0.0118" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <parent link="base_link"/>
+      <child link="${lat_label}_rocker_link"/>
+    </joint>
+  </xacro:macro>
+  <xacro:rocker_joint lat_label="left" reflect="1"/>
+  <xacro:rocker_joint lat_label="right" reflect="-1"/>
+
+  <!-- Corner (Steering) Links and Joints -->
+  <xacro:macro name="corner_link" params="lon_label lat_label">
+    <link name="${lon_label}_${lat_label}_corner_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.1 0.1"/>
+        </geometry>
+        <material name="dark_gray"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.1 0.1"/>
+        </geometry>
+      </collision>
+      <xacro:solid_cuboid_inertial rpy="0 0 0" xyz="0 0 0"
+        mass="0.25" x="0.1" y="0.1" z="0.1"/>
+    </link>
+  </xacro:macro>
+  <xacro:corner_link lon_label="front" lat_label="left"/>
+  <xacro:corner_link lon_label="front" lat_label="right"/>
+
+  <xacro:macro name="front_corner_joint" params="lat_label reflect">
+    <joint name="front_${lat_label}_corner_joint" type="continuous">
+      <origin xyz="0.2116 ${reflect * 0.075} -0.0279" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <parent link="${lat_label}_rocker_link"/>
+      <child link="front_${lat_label}_corner_link"/>
+    </joint>
+  </xacro:macro>
+  <xacro:front_corner_joint lat_label="left" reflect="1"/>
+  <xacro:front_corner_joint lat_label="right" reflect="-1"/>
+
+  <!-- Wheel Links and Joints for Corner Wheels -->
+  <xacro:macro name="wheel_link" params="lon_label lat_label reflect">
+    <link name="${lon_label}_${lat_label}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="${reflect * 1.5708} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+        <material name="dark_gray"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${reflect * 1.5708} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+      <xacro:solid_cylinder_inertial rpy="0 0 0" xyz="0 0 0"
+        mass="0.25" radius="${wheel_radius}" length="${wheel_width}"/>
+    </link>
+  </xacro:macro>
+  <xacro:wheel_link lon_label="front" lat_label="left" reflect="1"/>
+  <xacro:wheel_link lon_label="front" lat_label="right" reflect="-1"/>
+
+  <xacro:macro name="corner_wheel_joint" params="lon_label lat_label reflect">
+    <joint name="${lon_label}_${lat_label}_wheel_joint" type="continuous">
+      <origin xyz="0 0 -0.132" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <parent link="${lon_label}_${lat_label}_corner_link"/>
+      <child link="${lon_label}_${lat_label}_wheel_link"/>
+    </joint>
+  </xacro:macro>
+  <xacro:corner_wheel_joint lon_label="front" lat_label="left" reflect="1"/>
+  <xacro:corner_wheel_joint lon_label="front" lat_label="right" reflect="-1"/>
+
+  <!-- Bogie Links and Joints -->
+  <xacro:macro name="bogie_link" params="lat_label">
+    <link name="${lat_label}_bogie_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.015 0.015"/>
+        </geometry>
+        <material name="dark_gray"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.015 0.015"/>
+        </geometry>
+      </collision>
+      <xacro:solid_cuboid_inertial rpy="0 0 0" xyz="0 0 0"
+        mass="0.25" x="0.1" y="0.015" z="0.015"/>
+    </link>
+  </xacro:macro>
+  <xacro:bogie_link lat_label="left"/>
+  <xacro:bogie_link lat_label="right"/>
+
+  <xacro:macro name="bogie_joint" params="lat_label reflect">
+    <joint name="${lat_label}_bogie_joint" type="revolute">
+      <origin xyz="-0.181 ${reflect * 0.025} -0.062" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-0.7854" upper="0.7854" effort="100.0" velocity="100.0"/>
+      <parent link="${lat_label}_rocker_link"/>
+      <child link="${lat_label}_bogie_link"/>
+    </joint>
+  </xacro:macro>
+  <xacro:bogie_joint lat_label="left" reflect="1"/>
+  <xacro:bogie_joint lat_label="right" reflect="-1"/>
+
+  <!-- Mid Wheels attached to the bogie links -->
+  <xacro:wheel_link lon_label="mid" lat_label="left" reflect="1"/>
+  <xacro:wheel_link lon_label="mid" lat_label="right" reflect="-1"/>
+  <xacro:macro name="mid_wheel_joint" params="lat_label reflect">
+    <joint name="mid_${lat_label}_wheel_joint" type="continuous">
+      <origin xyz="0.1063 ${reflect * 0.0929} -0.0959" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <parent link="${lat_label}_bogie_link"/>
+      <child link="mid_${lat_label}_wheel_link"/>
+    </joint>
+  </xacro:macro>
+  <xacro:mid_wheel_joint lat_label="left" reflect="1"/>
+  <xacro:mid_wheel_joint lat_label="right" reflect="-1"/>
+
+  <!-- Back Corner and Wheel Assemblies -->
+  <xacro:corner_link lon_label="back" lat_label="left"/>
+  <xacro:corner_link lon_label="back" lat_label="right"/>
+  <xacro:macro name="back_corner_joint" params="lat_label reflect">
+    <joint name="back_${lat_label}_corner_joint" type="continuous">
+      <origin xyz="-0.149 ${reflect * 0.05} 0.0338" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <parent link="${lat_label}_bogie_link"/>
+      <child link="back_${lat_label}_corner_link"/>
+    </joint>
+  </xacro:macro>
+  <xacro:back_corner_joint lat_label="left" reflect="1"/>
+  <xacro:back_corner_joint lat_label="right" reflect="-1"/>
+  <xacro:wheel_link lon_label="back" lat_label="left" reflect="1"/>
+  <xacro:wheel_link lon_label="back" lat_label="right" reflect="-1"/>
+  <xacro:macro name="corner_wheel_joint" params="lon_label lat_label reflect">
+    <joint name="${lon_label}_${lat_label}_wheel_joint" type="continuous">
+      <origin xyz="0 0 -0.132" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <parent link="${lon_label}_${lat_label}_corner_link"/>
+      <child link="${lon_label}_${lat_label}_wheel_link"/>
+    </joint>
+  </xacro:macro>
+  <xacro:corner_wheel_joint lon_label="back" lat_label="left" reflect="1"/>
+  <xacro:corner_wheel_joint lon_label="back" lat_label="right" reflect="-1"/>
+  
+</robot>
+

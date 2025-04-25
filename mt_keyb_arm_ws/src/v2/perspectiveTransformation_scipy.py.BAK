@@ -1,0 +1,53 @@
+import numpy as np
+from scipy.linalg import svd
+
+def calculate_homography(src_points, dst_points):
+    # Ensure points are numpy arrays
+    src_points = np.array(src_points)
+    dst_points = np.array(dst_points)
+
+    # Create the matrix A
+    A = []
+    for i in range(4):
+        x, y = src_points[i]
+        x_prime, y_prime = dst_points[i]
+        A.append([-x, -y, -1, 0, 0, 0, x * x_prime, y * x_prime, x_prime])
+        A.append([0, 0, 0, -x, -y, -1, x * y_prime, y * y_prime, y_prime])
+
+    A = np.array(A)
+
+    # Solve Ah = 0 using SVD
+    U, S, Vh = svd(A)
+    h = Vh[-1]  # Last row of Vh
+
+    # Reshape h to the homography matrix
+    H = h.reshape(3, 3)
+
+    return H
+
+def apply_homography(H, point):
+    # Convert the point to homogeneous coordinates
+    x, y = point
+    homogeneous_point = np.array([x, y, 1])
+
+    # Apply the homography matrix
+    transformed_point = H @ homogeneous_point
+
+    # Convert back to Cartesian coordinates by dividing by the third (scale) component
+    transformed_point /= transformed_point[2]
+
+    return transformed_point[:2]
+
+# Example usage
+src_points = [[0, 0], [1, 0], [1, 1], [0, 1]]  # Source rectangle
+dst_points = [[0, 0], [1, 0], [1, 1.5], [0, 1]]  # Transformed rectangle
+
+# Calculate the homography matrix
+H = calculate_homography(src_points, dst_points)
+
+# Apply the homography to a point
+original_point = (0.5, 0.5)
+transformed_point = apply_homography(H, original_point)
+
+print("Original Point:", original_point)
+print("Transformed Point:", transformed_point)

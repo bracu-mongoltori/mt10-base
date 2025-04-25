@@ -1,0 +1,19 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    # Joint State Broadcaster
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # Differential Drive Controller
+    velocity_controllers:
+      type: diff_drive_controller/DiffDriveController
+      left_wheel_names: ["left_rocker_link_front_wheel_joint", "left_bogie_link_rear_wheel_joint"]
+      right_wheel_names: ["right_rocker_link_front_wheel_joint", "right_bogie_link_rear_wheel_joint"]
+      wheel_separation: 0.4  # Distance between left/right wheels
+      wheel_radius: 0.15     # Wheel radius
+      publish_rate: 50.0     # Controller publish rate
+      odom_frame_id: odom
+      base_frame_id: base_link
+      enable_odom_tf: true
