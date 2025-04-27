@@ -14,6 +14,8 @@ class MT10(Node):
     def __init__(self, vehicle):
         super().__init__("Rover_Control")
 
+        self.data = {'arm' : False, 'teleop': False, 'robotic_arm': False, 'twist':[], 'light': False}
+
         # Initialize vehicle
         if vehicle is None:
             self.get_logger().error("No Vehicle Found!")
@@ -31,7 +33,7 @@ class MT10(Node):
         self.AHRS2 = None
 
         #LED Light
-        self.rover.set_relay('blue')
+        # self.rover.set_relay('blue')
 
         # Control Variables
         self.enable_control = False
@@ -48,8 +50,8 @@ class MT10(Node):
         self.NEUTRAL = 1500
 
         # Movement
-        self.forward = 0
-        self.turn = 0
+        self.left = 0
+        self.right = 0
 
         # Robotic Arm Control
         self.base = 0
@@ -77,7 +79,7 @@ class MT10(Node):
         # self.rtk_gps = self.create_timer(1, self.gps_callback)
     
     def light_callback(self, msg:String):
-        self.rover.set_relay( rgb= msg.data)
+        self.rover.set_relay(rgb= msg.data)
         self.get_logger().info(f"Light Status: {msg.data}")
 
     def arm_disarm_callback(self, msg: Bool):
@@ -95,10 +97,13 @@ class MT10(Node):
 
     def teleop_callback(self, msg: Twist):
         """Callback to handle teleoperation commands."""
-        self.raw_move = msg.linear.x
-        self.raw_turn = msg.angular.z
-        # print(self.raw_move, self.raw_turn)
+        # self.raw_move = msg.linear.x
+        # self.raw_turn = msg.angular.z
 
+        #unholy
+        self.raw_move = msg.angular.z
+        self.raw_turn = msg.linear.x
+        
 
         if self.raw_move == 0.0 and self.raw_turn == 0.0:
             self.teleop_flag = False
@@ -116,6 +121,63 @@ class MT10(Node):
             self.teleop_flag = True
             self.forward = int(self.map_value(self.raw_move, self.MIN_SCALE, self.MAX_SCALE, 2200, 800))
             self.turn = int(self.map_value(self.raw_turn, self.MIN_SCALE, self.MAX_SCALE, 800, 2200))
+
+        # Check if the control is enabled
+        # if self.enable_control:
+        #     self.teleop_flag = True
+        #     self.left        = self.teleop_to_pwm_left(self.raw_move, self.raw_turn)
+        #     self.right       = self.teleop_to_pwm_right(self.raw_move, self.raw_turn)
+        # else:
+        #     # self.get_logger().error("Control is not enabled!")
+        #     self.teleop_flag = False
+        #     self.left        = self.NEUTRAL
+        #     self.right       = self.NEUTRAL
+
+        # """Callback to handle robotic arm commands."""
+        # self.raw_base = msg.base
+        # self.raw_link1 = msg.link1
+        # self.raw_link2 = msg.link2
+        # self.raw_d1 = msg.d1
+        # self.raw_d2 = msg.d2
+        # self.raw_claw = msg.claw
+
+        # if all(v == 0.0 for v in [self.raw_base, self.raw_link1, self.raw_link2, self.raw_d1, self.raw_d2, self.raw_claw]):
+        #     self.robotic_arm_flag = False
+        #     self.base = self.NEUTRAL
+        #     self.link1 = self.NEUTRAL
+        #     self.link2 = self.NEUTRAL
+        #     self.d1 = self.NEUTRAL
+        #     self.d2 = self.NEUTRAL
+        #     self.claw = self.NEUTRAL
+        # else:
+        #     self.robotic_arm_flag = True
+        #     self.base   = int(self.map_value(self.raw_base, self.MIN_SCALE, self.MAX_SCALE, 800, 2200))
+        #     self.link1  = int(self.map_value(self.raw_link1, self.MIN_SCALE, self.MAX_SCALE, 800, 2200))
+        #     self.link2  = int(self.map_value(self.raw_link2, self.MIN_SCALE, self.MAX_SCALE, 2200, 800))
+        #     self.d1     = int(self.map_value(self.raw_d1, self.MIN_SCALE_D, self.MAX_SCALE_D, 1600, 1300))
+        #     self.d2     = int(self.map_value(self.raw_d2, self.MIN_SCALE_D, self.MAX_SCALE_D, 1350, 1650))
+        #     self.claw   = int(self.map_value(self.raw_claw, self.MIN_SCALE, self.MAX_SCALE, 1300, 1700))
+
+
+
+
+    def teleop_to_pwm_left(self, x, y):
+        # For left Motor 
+        value = x + y 
+        value = -100 if value < -100 else (100 if value > 100 else value)
+        return int(self.map_value(value, -100, 100, 800, 2200))
+    def teleop_to_pwm_right(self, x, y):    
+        # For right Motor
+        value = x - y
+        value = -100 if value < -100 else (100 if value > 100 else value)
+        return int(self.map_value(value, -100, 100, 800, 2200))
+
+        
+
+
+
+
+
 
     def robotic_arm_callback(self, msg: ControlMsgs):
         """Callback to handle robotic arm commands."""
@@ -136,12 +198,12 @@ class MT10(Node):
             self.claw = self.NEUTRAL
         else:
             self.robotic_arm_flag = True
-            self.base = int(self.map_value(self.raw_base, self.MIN_SCALE, self.MAX_SCALE, 800, 2200))
-            self.link1 = int(self.map_value(self.raw_link1, self.MIN_SCALE, self.MAX_SCALE, 800, 2200))
-            self.link2 = int(self.map_value(self.raw_link2, self.MIN_SCALE, self.MAX_SCALE, 2200, 800))
-            self.d1 = int(self.map_value(self.raw_d1, self.MIN_SCALE_D, self.MAX_SCALE_D, 1600, 1300))
-            self.d2 = int(self.map_value(self.raw_d2, self.MIN_SCALE_D, self.MAX_SCALE_D, 1350, 1650))
-            self.claw = int(self.map_value(self.raw_claw, self.MIN_SCALE, self.MAX_SCALE, 1300, 1700))
+            self.base   = int(self.map_value(self.raw_base, self.MIN_SCALE, self.MAX_SCALE, 800, 2200))
+            self.link1  = int(self.map_value(self.raw_link1, self.MIN_SCALE, self.MAX_SCALE, 800, 2200))
+            self.link2  = int(self.map_value(self.raw_link2, self.MIN_SCALE, self.MAX_SCALE, 2200, 800))
+            self.d1     = int(self.map_value(self.raw_d1, self.MIN_SCALE_D, self.MAX_SCALE_D, 1600, 1300))
+            self.d2     = int(self.map_value(self.raw_d2, self.MIN_SCALE_D, self.MAX_SCALE_D, 1350, 1650))
+            self.claw   = int(self.map_value(self.raw_claw, self.MIN_SCALE, self.MAX_SCALE, 1300, 1700))
 
     def control_loop(self):
         """Main control loop to send commands to the rover."""
@@ -224,7 +286,8 @@ class MT10(Node):
 def main():
     rclpy.init()
     global mongol_tori
-    mongol_tori = MT10(lib.Vehicle("/dev/ttyUSB0", 9600))
+    mongol_tori = MT10(lib.Vehicle("/dev/ttyUSB0", 57600))
+    #mongol_tori = MT10(lib.Vehicle("/dev/ttyACM0", 57600))
     rclpy.spin(mongol_tori)
 
 
